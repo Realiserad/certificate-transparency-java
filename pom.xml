@@ -169,7 +169,7 @@
                 <version>${os-maven-plugin.version}</version>
             </extension>
         </extensions>
-
+        <pluginManagement>
         <plugins>
             <!-- copy protoc binary into build directory -->
             <plugin>
@@ -430,5 +430,6 @@
                 </configuration>
             </plugin>
         </plugins>
+        </pluginManagement>
     </build>
 </project>
