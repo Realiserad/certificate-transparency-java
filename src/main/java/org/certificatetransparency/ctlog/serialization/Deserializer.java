@@ -1,7 +1,7 @@
 package org.certificatetransparency.ctlog.serialization;
 
-import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.certificatetransparency.ctlog.LogEntry;
@@ -17,8 +17,8 @@ import org.certificatetransparency.ctlog.X509ChainEntry;
 import org.certificatetransparency.ctlog.proto.Ct;
 import org.json.simple.JSONArray;
 
-import java.io.IOException;
-import java.io.InputStream;
+import com.google.common.base.Preconditions;
+import com.google.protobuf.ByteString;
 
 /** Converting binary data to CT structures. */
 public class Deserializer {
@@ -117,10 +117,11 @@ public class Deserializer {
    * @return {@link MerkleAuditProof}
    */
   public static MerkleAuditProof parseAuditProof(JSONArray proof, long leafIndex, long treeSize) {
-
-    MerkleAuditProof audit_proof = new MerkleAuditProof(Ct.Version.V1, treeSize, leafIndex);
-    proof.forEach(node -> audit_proof.pathNode.add(Base64.decodeBase64((String) node)));
-    return audit_proof;
+    MerkleAuditProof auditProof = new MerkleAuditProof(Ct.Version.V1, treeSize, leafIndex);
+    for (final Object node : proof) {
+        auditProof.pathNode.add(Base64.decodeBase64((String) node));
+    }
+    return auditProof;
   }
 
   /**
