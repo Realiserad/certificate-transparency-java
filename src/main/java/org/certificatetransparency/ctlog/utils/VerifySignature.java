@@ -158,6 +158,7 @@ public class VerifySignature {
       throws IOException {
     List<Ct.SignedCertificateTimestamp> sctList = new ArrayList<Ct.SignedCertificateTimestamp>();
     ByteArrayInputStream bis = new ByteArrayInputStream(extensionvalue);
+    TlsUtils.readUint16(bis);
     while (bis.available() > 2) {
       byte[] sctBytes = TlsUtils.readOpaque16(bis);
       // System.out.println("Read SCT bytes (excluding length): " + sctBytes.length);
