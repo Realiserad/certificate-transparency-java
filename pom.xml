@@ -169,267 +169,265 @@
                 <version>${os-maven-plugin.version}</version>
             </extension>
         </extensions>
-        <pluginManagement>
-	        <plugins>
-	            <!-- copy protoc binary into build directory -->
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-dependency-plugin</artifactId>
-	                <version>${maven-dependency-plugin.version}</version>
-	                <executions>
-	                    <execution>
-	                        <id>copy-protoc</id>
-	                        <phase>generate-sources</phase>
-	                        <goals>
-	                            <goal>copy</goal>
-	                        </goals>
-	                        <configuration>
-	                            <artifactItems>
-	                                <artifactItem>
-	                                    <groupId>com.google.protobuf</groupId>
-	                                    <artifactId>protoc</artifactId>
-	                                    <version>${protobuf.version}</version>
-	                                    <classifier>${os.detected.classifier}</classifier>
-	                                    <type>exe</type>
-	                                    <overWrite>true</overWrite>
-	                                    <outputDirectory>${project.build.directory}</outputDirectory>
-	                                </artifactItem>
-	                            </artifactItems>
-	                        </configuration>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <!-- compile proto buffer files using copied protoc binary -->
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-antrun-plugin</artifactId>
-	                <version>${maven-antrun-plugin.version}</version>
-	                <executions>
-	                    <execution>
-	                        <id>exec-protoc</id>
-	                        <phase>generate-sources</phase>
-	                        <configuration>
-	                            <target>
-	                                <property name="protoc.filename"
-	                                          value="protoc-${protobuf.version}-${os.detected.classifier}.exe"/>
-	                                <property name="protoc.filepath" value="${project.build.directory}/${protoc.filename}"/>
-	                                <chmod file="${protoc.filepath}" perm="ugo+rx"/>
-	                                <mkdir dir="${protobuf.output.directory}"/>
-	                                <path id="protobuf.input.filepaths.path">
-	                                    <fileset dir="${protobuf.input.directory}">
-	                                        <include name="**/*.proto"/>
-	                                    </fileset>
-	                                </path>
-	                                <pathconvert pathsep=" " property="protobuf.input.filepaths"
-	                                             refid="protobuf.input.filepaths.path"/>
-	                                <exec executable="${protoc.filepath}" failonerror="true">
-	                                    <arg value="-I"/>
-	                                    <arg value="${protobuf.input.directory}"/>
-	                                    <arg value="--java_out"/>
-	                                    <arg value="${protobuf.output.directory}"/>
-	                                    <arg line="${protobuf.input.filepaths}"/>
-	                                </exec>
-	                            </target>
-	                        </configuration>
-	                        <goals>
-	                            <goal>run</goal>
-	                        </goals>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>com.coveo</groupId>
-	                <artifactId>fmt-maven-plugin</artifactId>
-	                <version>1.5.0</version>
-	                <executions>
-	                    <execution>
-	                        <goals>
-	                            <goal>format</goal>
-	                        </goals>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.codehaus.mojo</groupId>
-	                <artifactId>build-helper-maven-plugin</artifactId>
-	                <version>3.0.0</version>
-	                <executions>
-	                    <execution>
-	                        <phase>generate-sources</phase>
-	                        <goals>
-	                            <goal>add-source</goal>
-	                        </goals>
-	                        <configuration>
-	                            <sources>
-	                                <source>target/generated-sources</source>
-	                            </sources>
-	                        </configuration>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <artifactId>maven-compiler-plugin</artifactId>
-	                <version>3.6.0</version>
-	                <inherited>true</inherited>
-	                <configuration>
-	                    <source>${java.version}</source>
-	                    <target>${java.version}</target>
-	                    <encoding>${project.build.sourceEncoding}</encoding>
-	                </configuration>
-	            </plugin>
-	
-	            <plugin>
-	                <artifactId>maven-surefire-plugin</artifactId>
-	                <version>2.18.1</version>
-	                <dependencies>
-	                    <dependency>
-	                        <groupId>org.apache.maven.surefire</groupId>
-	                        <artifactId>common-junit48</artifactId>
-	                        <version>2.18.1</version>
-	                    </dependency>
-	                </dependencies>
-	                <configuration combine.self="override">
-	                    <forkCount>1</forkCount>
-	                    <reuseForks>true</reuseForks>
-	                    <includes>
-	                        <include>**/*.class</include>
-	                    </includes>
-	                </configuration>
-	            </plugin>
-	
-	            <plugin>
-	                <!-- Build an executable JAR -->
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-jar-plugin</artifactId>
-	                <version>3.0.2</version>
-	                <configuration>
-	                    <archive>
-	                        <manifest>
-	                            <addClasspath>true</addClasspath>
-	                            <classpathPrefix>lib/</classpathPrefix>
-	                            <mainClass>org.certificatetransparency.ctlog.CTLogClient</mainClass>
-	                        </manifest>
-	                    </archive>
-	                </configuration>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-shade-plugin</artifactId>
-	                <version>3.0.0</version>
-	                <executions>
-	                    <execution>
-	                        <phase>package</phase>
-	                        <goals>
-	                            <goal>shade</goal>
-	                        </goals>
-	                        <configuration>
-	                            <filters>
-	                                <filter>
-	                                    <artifact>*:*</artifact>
-	                                    <excludes>
-	                                        <exclude>META-INF/*.SF</exclude>
-	                                        <exclude>META-INF/*.DSA</exclude>
-	                                        <exclude>META-INF/*.RSA</exclude>
-	                                    </excludes>
-	                                </filter>
-	
-	                                <!-- Not explicitly referenced by the code, so
-	                                     it gets stripped by minimizeJar. -->
-	                                <filter>
-	                                    <artifact>commons-logging:commons-logging</artifact>
-	                                    <includes>
-	                                        <include>org/apache/commons/logging/**</include>
-	                                    </includes>
-	                                </filter>
-	
-	                                <filter>
-	                                    <artifact>com.google.protobuf:protobuf-java</artifact>
-	                                    <excludes>
-	                                        <exclude>**/*.proto</exclude>
-	                                    </excludes>
-	                                </filter>
-	                            </filters>
-	
-	                            <finalName>ctlog-${project.version}-with-deps</finalName>
-	                            <minimizeJar>true</minimizeJar>
-	                        </configuration>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.owasp</groupId>
-	                <artifactId>dependency-check-maven</artifactId>
-	                <version>1.4.5</version>
-	                <executions>
-	                    <execution>
-	                        <goals>
-	                            <goal>check</goal>
-	                        </goals>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-source-plugin</artifactId>
-	                <version>3.0.1</version>
-	                <executions>
-	                    <execution>
-	                        <id>attach-sources</id>
-	                        <goals>
-	                            <goal>jar</goal>
-	                        </goals>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-javadoc-plugin</artifactId>
-	                <version>2.10.4</version>
-	                <executions>
-	                    <execution>
-	                        <id>attach-javadocs</id>
-	                        <goals>
-	                            <goal>jar</goal>
-	                        </goals>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-gpg-plugin</artifactId>
-	                <version>1.6</version>
-	                <executions>
-	                    <execution>
-	                        <id>sign-artifacts</id>
-	                        <phase>verify</phase>
-	                        <goals>
-	                            <goal>sign</goal>
-	                        </goals>
-	                    </execution>
-	                </executions>
-	            </plugin>
-	
-	            <plugin>
-	                <groupId>org.sonatype.plugins</groupId>
-	                <artifactId>nexus-staging-maven-plugin</artifactId>
-	                <version>1.6.7</version>
-	                <extensions>true</extensions>
-	                <configuration>
-	                    <serverId>ossrh</serverId>
-	                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-	                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
-	                </configuration>
-	            </plugin>
-	        </plugins>
-        </pluginManagement>
+        <plugins>
+            <!-- copy protoc binary into build directory -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-protoc</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.google.protobuf</groupId>
+                                    <artifactId>protoc</artifactId>
+                                    <version>${protobuf.version}</version>
+                                    <classifier>${os.detected.classifier}</classifier>
+                                    <type>exe</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- compile proto buffer files using copied protoc binary -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven-antrun-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>exec-protoc</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <target>
+                                <property name="protoc.filename"
+                                          value="protoc-${protobuf.version}-${os.detected.classifier}.exe"/>
+                                <property name="protoc.filepath" value="${project.build.directory}/${protoc.filename}"/>
+                                <chmod file="${protoc.filepath}" perm="ugo+rx"/>
+                                <mkdir dir="${protobuf.output.directory}"/>
+                                <path id="protobuf.input.filepaths.path">
+                                    <fileset dir="${protobuf.input.directory}">
+                                        <include name="**/*.proto"/>
+                                    </fileset>
+                                </path>
+                                <pathconvert pathsep=" " property="protobuf.input.filepaths"
+                                             refid="protobuf.input.filepaths.path"/>
+                                <exec executable="${protoc.filepath}" failonerror="true">
+                                    <arg value="-I"/>
+                                    <arg value="${protobuf.input.directory}"/>
+                                    <arg value="--java_out"/>
+                                    <arg value="${protobuf.output.directory}"/>
+                                    <arg line="${protobuf.input.filepaths}"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.coveo</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>target/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>common-junit48</artifactId>
+                        <version>2.18.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration combine.self="override">
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <includes>
+                        <include>**/*.class</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- Build an executable JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>org.certificatetransparency.ctlog.CTLogClient</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+
+                                <!-- Not explicitly referenced by the code, so
+                                     it gets stripped by minimizeJar. -->
+                                <filter>
+                                    <artifact>commons-logging:commons-logging</artifact>
+                                    <includes>
+                                        <include>org/apache/commons/logging/**</include>
+                                    </includes>
+                                </filter>
+
+                                <filter>
+                                    <artifact>com.google.protobuf:protobuf-java</artifact>
+                                    <excludes>
+                                        <exclude>**/*.proto</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+                            <finalName>ctlog-${project.version}-with-deps</finalName>
+                            <minimizeJar>true</minimizeJar>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>1.4.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>

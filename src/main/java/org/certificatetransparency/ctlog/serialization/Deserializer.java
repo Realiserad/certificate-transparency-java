@@ -119,7 +119,7 @@ public class Deserializer {
   public static MerkleAuditProof parseAuditProof(JSONArray proof, long leafIndex, long treeSize) {
     MerkleAuditProof auditProof = new MerkleAuditProof(Ct.Version.V1, treeSize, leafIndex);
     for (final Object node : proof) {
-        auditProof.pathNode.add(Base64.decodeBase64((String) node));
+      auditProof.pathNode.add(Base64.decodeBase64((String) node));
     }
     return auditProof;
   }
